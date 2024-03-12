@@ -50,7 +50,7 @@ int main(int argc, char** argv)
 
     // Part 1 Code
     // Code provided directly by Dr. Black
-    ifstream romfile("testrom.gb", ios::in | ios::binary | ios::ate);
+    ifstream romfile("C:\\Users\\nzach\\OneDrive\\Documents\\GitHub\\COMP406-Project2\\testrom.gb", ios::in | ios::binary | ios::ate);
     streampos size=romfile.tellg();
     rom = new char[size];
     romSize=size;
@@ -64,7 +64,7 @@ int main(int argc, char** argv)
 
     // Part 2 Code
     int n;
-    ifstream vidfile("screendump.txt", ios::in);
+    ifstream vidfile("C:\\Users\\nzach\\OneDrive\\Documents\\GitHub\\COMP406-Project2\\screendump.txt", ios::in);
     for (int i = 0; i < 8192; i++) {
         // int n;   // This is written twice in the provided code so I picked one
         vidfile >> n;
@@ -122,7 +122,7 @@ int main(int argc, char** argv)
             }
         }
 
-        printf("PC: %d, instruction: %s, A: %d, B: %d\n", z80 -> PC, z80 -> instruction, z80 -> A, z80 -> B);
+        //printf("PC: %d, instruction: %s, A: %d, B: %d\n", z80 -> PC, z80 -> instruction, z80 -> A, z80 -> B);
     }
 
     renderScreen();
