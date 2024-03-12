@@ -8,6 +8,8 @@
 Z80* z80;
 char* rom;
 
+using namespace std;
+
 // Function prototypes
 void renderScreen(void);
 unsigned char memoryRead(int address);
@@ -31,6 +33,7 @@ int line=0, cmpline=0, videostate=0, keyboardColumn=0, horizontal=0;
 int gpuMode=HBLANK;
 int romOffset = 0x4000;
 long totalInstructions=0;
+int romSize;
 
 // Function prototypes introduced in part 3
 unsigned char getKey(void);
@@ -47,12 +50,12 @@ int main(int argc, char** argv)
 
     // Part 1 Code
     // Code provided directly by Dr. Black
-    std::ifstream romfile("tetris.gb", std::ios::in | std::ios::binary | std::ios::ate);
-    std::streampos size=romfile.tellg();
-    rom=new char[size];
-    int romSize=size;
-    romfile.seekg(0, std::ios::beg);
-    romfile.read(rom,romSize);
+    ifstream romfile("testrom.gb", ios::in | ios::binary | ios::ate);
+    streampos size=romfile.tellg();
+    rom = new char[size];
+    romSize=size;
+    romfile.seekg(0, ios::beg);
+    romfile.read(rom, size);
     romfile.close();
     // End of code provided directly by Dr. Black
 
@@ -61,7 +64,7 @@ int main(int argc, char** argv)
 
     // Part 2 Code
     int n;
-    std::ifstream vidfile("screendump.txt", std::ios::in);
+    ifstream vidfile("screendump.txt", ios::in);
     for (int i = 0; i < 8192; i++) {
         // int n;   // This is written twice in the provided code so I picked one
         vidfile >> n;
@@ -122,8 +125,8 @@ int main(int argc, char** argv)
         printf("PC: %d, instruction: %s, A: %d, B: %d\n", z80 -> PC, z80 -> instruction, z80 -> A, z80 -> B);
     }
 
-//    renderScreen();
-//    app -> exec();
+    renderScreen();
+    app -> exec();
 }
 
 void renderScreen(void)
