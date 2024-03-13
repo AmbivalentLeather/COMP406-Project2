@@ -1,7 +1,6 @@
 // Nicholas Young, 2024-03-8
 #include <stdio.h>
 #include <fstream>
-
 #include "Z80.h"
 #include "screen.h"
 
@@ -21,11 +20,7 @@ int palette[4];
 int tileset, tilemap, scrollx, scrolly;
 
 // Global variables introduced in part 3
-#define HBLANK 0
-#define VBLANK 1
-#define SPRITE 2
-#define VRAM 3
-//int HBLANK=0, VBLANK=1, SPRITE=2, VRAM=3; // I didn't like this so I changed it to defines
+int HBLANK=0, VBLANK=1, SPRITE=2, VRAM=3; // I don't like this, could this be DEFINE statements?
 unsigned char workingRAM[0x2000];
 unsigned char page0RAM[0x80];
 
@@ -50,7 +45,11 @@ int main(int argc, char** argv)
 
     // Part 1 Code
     // Code provided directly by Dr. Black
+<<<<<<< Updated upstream
     ifstream romfile("C:\\Users\\nzach\\OneDrive\\Documents\\GitHub\\COMP406-Project2\\testrom.gb", ios::in | ios::binary | ios::ate);
+=======
+    ifstream romfile("ttt.gb", ios::in | ios::binary | ios::ate);
+>>>>>>> Stashed changes
     streampos size=romfile.tellg();
     rom = new char[size];
     romSize=size;
@@ -66,14 +65,15 @@ int main(int argc, char** argv)
     int n;
     ifstream vidfile("C:\\Users\\nzach\\OneDrive\\Documents\\GitHub\\COMP406-Project2\\screendump.txt", ios::in);
     for (int i = 0; i < 8192; i++) {
-        // int n;   // This is written twice in the provided code so I picked one
         vidfile >> n;
         graphicsRAM[i] = (unsigned char) n;
     }
+
     vidfile >> tileset;
     vidfile >> tilemap;
     vidfile >> scrollx;
     vidfile >> scrolly;
+
     vidfile >> palette[0];
     vidfile >> palette[1];
     vidfile >> palette[2];
@@ -96,7 +96,6 @@ int main(int argc, char** argv)
         }
         z80 -> checkForInterrupts();
 
-        totalInstructions++;
         horizontal = (int) ((totalInstructions + 1) % 61);
 
         // Set gpu modes -- This could also be wrong
@@ -104,7 +103,7 @@ int main(int argc, char** argv)
             gpuMode = VBLANK;
         } else if (horizontal <= 30) {
             gpuMode = HBLANK;
-        } else if (horizontal < 40 && horizontal > 30) {
+        } else if ((horizontal < 40) && (horizontal > 30)) {
             gpuMode = SPRITE;
         } else {
             gpuMode = VRAM;
@@ -114,7 +113,7 @@ int main(int argc, char** argv)
             line++;
             if (line == 144)
                 z80 -> throwInterrupt(1);
-            if (line % 153 == cmpline && (videostate & 0x40) != 0)
+            if ((line % 153 == cmpline) && ((videostate & 0x40) != 0))
                 z80 -> throwInterrupt(2);
             if (line == 153) {
                 line = 0;
@@ -122,17 +121,21 @@ int main(int argc, char** argv)
             }
         }
 
+<<<<<<< Updated upstream
         //printf("PC: %d, instruction: %s, A: %d, B: %d\n", z80 -> PC, z80 -> instruction, z80 -> A, z80 -> B);
+=======
+        totalInstructions++;
+>>>>>>> Stashed changes
     }
-
-    renderScreen();
-    app -> exec();
+    //renderScreen();
+    //app -> exec();
+    return 0;
 }
 
 void renderScreen(void)
 {
     int color, pixel;
-    int tilex, tiley, tileindex, tileaddress;
+    int tilex, tiley, tileindex, tileaddress = 0;
     int xoffset, yoffset;
     unsigned char row0, row1;
     unsigned char row0shifted, row1shifted, row0capturepixel, row1capturepixel;
@@ -158,11 +161,11 @@ void renderScreen(void)
             else if (tilemap == 1)
                 tileindex = graphicsRAM[0xc00 + tileposition];
 
-            // Determine tile encoding based on tile map
-            if (tilemap == 1) {
+            // Determine tile encoding based on tile set
+            if (tileset == 1) {
                 tileaddress = tileindex * 16; // Int or unsigned char?
             }
-            if (tilemap == 0) {
+            if (tileset == 0) {
                 if (tileindex >= 128)
                     tileindex = tileindex - 256;
                 tileaddress = tileindex * 16 + 0x1000;
@@ -205,9 +208,9 @@ unsigned char memoryRead(int address)
                                 break;
         case 0xFF80 ... 0xFFFF: return page0RAM[address % 0x80];
                                 break;
-        case 0xFF00: getKey();
+        case 0xFF00: return getKey();
                      break;
-        case 0xFF41: getVideoState();
+        case 0xFF41: return getVideoState();
                      break;
         case 0xFF42: return scrolly;
                      break;
@@ -217,45 +220,41 @@ unsigned char memoryRead(int address)
                      break;
         case 0xFF45: return cmpline;
                      break;
-        default: return 0;
-                 break;
+        default:    return 0;
     }
-    return 0;
+
 }
 
 void memoryWrite(int address, unsigned char b)
 {    
     switch (address) {
-        case 0x0000 ... 0x3FFF: setRomMode(address, b);
-                                break;
-        case 0x4000 ... 0x7FFF: ;
-                                break;
-        case 0x8000 ... 0x9FFF: graphicsRAM[address % 0x2000] = b;
-                                break;
-        case 0xC000 ... 0xDFFF: workingRAM[address % 0x2000] = b;
-                                break;
-        case 0xFF80 ... 0xFFFF: page0RAM[address % 0x80] = b;
-                                break;
-        case 0xFF00: keyboardColumn = b;
-                     break;
-        case 0xFF40: setControlByte(b);
-                     break;
-        case 0xFF41: videostate = b;
-                     break;
-        case 0xFF42: scrolly = b;
-                     break;
-        case 0xFF43: scrollx = b;
-                     break;
-        case 0xFF44: line = b;
-                     break;
-        case 0xFF45: cmpline = b;
-                     break;
-        case 0xFF47: setPalette(b);
-                     break;
-        default: ;
-                 break;
+    case 0x0000 ... 0x3FFF: setRomMode(address, b);
+                            break;
+    case 0x4000 ... 0x7FFF: ;
+                            break;
+    case 0x8000 ... 0x9FFF: graphicsRAM[address % 0x2000] = b;
+                            break;
+    case 0xC000 ... 0xDFFF: workingRAM[address % 0x2000] = b;
+                            break;
+    case 0xFF80 ... 0xFFFF: page0RAM[address % 0x80] = b;
+                            break;
+    case 0xFF00:    keyboardColumn = b;
+                    break;
+    case 0xFF40:    setControlByte(b);
+                    break;
+    case 0xFF41:    videostate = b;
+                    break;
+    case 0xFF42:    scrolly = b;
+                    break;
+    case 0xFF43:    scrollx = b;
+                    break;
+    case 0xFF44:    line = b;
+                    break;
+    case 0xFF45:    cmpline = b;
+                    break;
+    case 0xFF47:    setPalette(b);
+                    break;
     }
-
 } 
 
 
@@ -263,11 +262,12 @@ unsigned char getKey() { return 0xf; }
 void setRomMode(int address, unsigned char b) { }
 void setControlByte(unsigned char b) {
         tilemap=(b&8)!=0?1:0;
-
         tileset=(b&16)!=0?1:0;
- }
+}
+
 void setPalette(unsigned char b) {
-	palette[0]=b&3; palette[1]=(b>>2)&3; palette[2]=(b>>4)&3; palette[3]=(b>>6)&3;}
+    palette[0]=b&3; palette[1]=(b>>2)&3; palette[2]=(b>>4)&3; palette[3]=(b>>6)&3;
+}
 
 unsigned char getVideoState() {
         int by=0;
