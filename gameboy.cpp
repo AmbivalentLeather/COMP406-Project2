@@ -50,7 +50,7 @@ int main(int argc, char** argv)
 
     // Part 1 Code
     // Code provided directly by Dr. Black
-    ifstream romfile("testrom.gb", ios::in | ios::binary | ios::ate);
+    ifstream romfile("opus5.gb", ios::in | ios::binary | ios::ate);
     streampos size=romfile.tellg();
     rom = new char[size];
     romSize=size;
@@ -122,11 +122,12 @@ int main(int argc, char** argv)
             }
         }
 
-        printf("PC: %d, instruction: %s, A: %d, B: %d\n", z80 -> PC, z80 -> instruction, z80 -> A, z80 -> B);
+        //printf("PC: %d, instruction: %s, A: %d, B: %d\n", z80 -> PC, z80 -> instruction, z80 -> A, z80 -> B);
     }
 
-    renderScreen();
-    app -> exec();
+    //renderScreen();
+    //app -> exec();
+    return 0;
 }
 
 void renderScreen(void)
@@ -159,10 +160,10 @@ void renderScreen(void)
                 tileindex = graphicsRAM[0xc00 + tileposition];
 
             // Determine tile encoding based on tile map
-            if (tilemap == 1) {
+            if (tileset == 1) {
                 tileaddress = tileindex * 16; // Int or unsigned char?
             }
-            if (tilemap == 0) {
+            if (tileset == 0) {
                 if (tileindex >= 128)
                     tileindex = tileindex - 256;
                 tileaddress = tileindex * 16 + 0x1000;
@@ -205,9 +206,9 @@ unsigned char memoryRead(int address)
                                 break;
         case 0xFF80 ... 0xFFFF: return page0RAM[address % 0x80];
                                 break;
-        case 0xFF00: getKey();
+        case 0xFF00: return getKey();
                      break;
-        case 0xFF41: getVideoState();
+        case 0xFF41: return getVideoState();
                      break;
         case 0xFF42: return scrolly;
                      break;

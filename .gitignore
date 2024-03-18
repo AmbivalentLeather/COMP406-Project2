@@ -9,3 +9,8 @@ Makefile
 moc_predefs.h
 gameboy
 moc_screen.cpp
+Makefile.Release
+Makefile.Debug
+gameboy.pro.user
+.qmake.stash
+release/gameboy.exe

@@ -69,6 +69,7 @@ void Square::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget 
 	{
 	for(int y=0; y<GRIDHEIGHT; y++)
 	{
+        painter->setPen(Qt::NoPen);
 	painter->setBrush(color[pixels[x][y]]);
 	painter->drawRect(dw*x,dh*y,dw,dh);
 	}
