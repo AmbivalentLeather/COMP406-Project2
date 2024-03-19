@@ -1,6 +1,7 @@
 // Nicholas Young, 2024-03-8
 #include <stdio.h>
 #include <fstream>
+#include <conio.h>
 
 #include "Z80.h"
 #include "screen.h"
@@ -14,6 +15,16 @@ using namespace std;
 void renderScreen(void);
 unsigned char memoryRead(int address);
 void memoryWrite(int address, unsigned char b);
+unsigned char getKey(void);
+void setRomMode(int address, unsigned char b);
+void setControlByte(unsigned char b);
+void setPalette(unsigned char b);
+unsigned char getVideoState(void);
+
+// Take user input
+void keypressHandler(char key);
+void keydown(int key);
+void keyup(int key);
 
 // Global variables to hold video memory
 unsigned char graphicsRAM[8192];
@@ -21,26 +32,17 @@ int palette[4];
 int tileset, tilemap, scrollx, scrolly;
 
 // Global variables introduced in part 3
-#define HBLANK 0
-#define VBLANK 1
-#define SPRITE 2
-#define VRAM 3
-//int HBLANK=0, VBLANK=1, SPRITE=2, VRAM=3; // I didn't like this so I changed it to defines
+int HBLANK=0, VBLANK=1, SPRITE=2, VRAM=3;
 unsigned char workingRAM[0x2000];
 unsigned char page0RAM[0x80];
 
+// Global variables to hold screen info and the instruction count
 int line=0, cmpline=0, videostate=0, keyboardColumn=0, horizontal=0;
 int gpuMode=HBLANK;
 int romOffset = 0x4000;
 long totalInstructions=0;
 int romSize;
 
-// Function prototypes introduced in part 3
-unsigned char getKey(void);
-void setRomMode(int address, unsigned char b);
-void setControlByte(unsigned char b);
-void setPalette(unsigned char b);
-unsigned char getVideoState(void);
 
 extern QApplication* app;
 
@@ -62,11 +64,10 @@ int main(int argc, char** argv)
     z80 = new Z80 (memoryRead, memoryWrite);
     z80 -> reset();
 
-    // Part 2 Code
+    // Load screen information into graphics memory
     int n;
     ifstream vidfile("screendump.txt", ios::in);
     for (int i = 0; i < 8192; i++) {
-        // int n;   // This is written twice in the provided code so I picked one
         vidfile >> n;
         graphicsRAM[i] = (unsigned char) n;
     }
@@ -78,8 +79,8 @@ int main(int argc, char** argv)
     vidfile >> palette[1];
     vidfile >> palette[2];
     vidfile >> palette[3];
-    // End of Part 2 Code
 
+    // Fetch-execute for gameboy code
     while (true) {
         if (z80 -> halted)
             break;
@@ -99,7 +100,7 @@ int main(int argc, char** argv)
         totalInstructions++;
         horizontal = (int) ((totalInstructions + 1) % 61);
 
-        // Set gpu modes -- This could also be wrong
+        // Set gpu modes based on current line or column
         if (line >= 145) {
             gpuMode = VBLANK;
         } else if (horizontal <= 30) {
@@ -110,6 +111,7 @@ int main(int argc, char** argv)
             gpuMode = VRAM;
         }
 
+        // Throw interrupts or render screen based on current line
         if (horizontal == 0) {
             line++;
             if (line == 144)
@@ -122,16 +124,31 @@ int main(int argc, char** argv)
             }
         }
 
-        //printf("PC: %d, instruction: %s, A: %d, B: %d\n", z80 -> PC, z80 -> instruction, z80 -> A, z80 -> B);
-    }
+        char ch = getch();
+        keypressHandler(ch);
 
-    //renderScreen();
-    //app -> exec();
+    }
     return 0;
+}
+
+void keypressHandler(char key)
+{
+    switch (key) {
+        case 39: keyup &= 0xE; break;
+        case 37: keyup &= 0xD; break;
+        case 38: keyup &= 0xB; break;
+        case 40: keyup &= 0x7; break;
+        case 90: keydown &= 0xE; break;
+        case 88: keydown &= 0xD; break;
+        case 32: keydown &= 0xB; break;
+        case 13: keydown &= 0x7; break;
+    default: ;
+    }
 }
 
 void renderScreen(void)
 {
+    // These don't necessarily need to be ints, it was just how I did it the first time and it worked
     int color, pixel;
     int tilex, tiley, tileindex, tileaddress;
     int xoffset, yoffset;
@@ -259,7 +276,7 @@ void memoryWrite(int address, unsigned char b)
 
 } 
 
-
+// Start of functions provided directly by Dr. Black
 unsigned char getKey() { return 0xf; }
 void setRomMode(int address, unsigned char b) { }
 void setControlByte(unsigned char b) {
@@ -283,3 +300,4 @@ unsigned char getVideoState() {
 
         return (unsigned char)((by|(videostate&0xf8))&0xff);
  }
+// End of functions provided directly by Dr. Black
