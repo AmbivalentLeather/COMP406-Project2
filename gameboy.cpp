@@ -22,9 +22,11 @@ void setPalette(unsigned char b);
 unsigned char getVideoState(void);
 
 // Take user input
-void keypressHandler(char key);
+//void keypressHandler(char key);
 void keydown(int key);
 void keyup(int key);
+
+int upkey = 0xf, downkey = 0xf;
 
 // Global variables to hold video memory
 unsigned char graphicsRAM[8192];
@@ -124,26 +126,8 @@ int main(int argc, char** argv)
             }
         }
 
-        char ch = getch();
-        keypressHandler(ch);
-
     }
     return 0;
-}
-
-void keypressHandler(char key)
-{
-    switch (key) {
-        case 39: keyup &= 0xE; break;
-        case 37: keyup &= 0xD; break;
-        case 38: keyup &= 0xB; break;
-        case 40: keyup &= 0x7; break;
-        case 90: keydown &= 0xE; break;
-        case 88: keydown &= 0xD; break;
-        case 32: keydown &= 0xB; break;
-        case 13: keydown &= 0x7; break;
-    default: ;
-    }
 }
 
 void renderScreen(void)
@@ -276,8 +260,50 @@ void memoryWrite(int address, unsigned char b)
 
 } 
 
+void keydown(int key)
+{
+    qDebug("%d", key);
+    switch(key)
+    {
+        case 331: downkey &= 0xE; break; // right
+        case 336: downkey &= 0x7; break; // down
+        case 333: downkey &= 0xD; break; // left
+        case 328: downkey &= 0xB; break; // up
+        case 44: upkey &= 0xE; break; // z
+        case 45: upkey &= 0xD; break; // x
+        case 57: upkey &= 0xB; break; // space
+        case 28: upkey &= 0x7; break; // enter
+    default: break;
+    }
+    z80 -> throwInterrupt(0x10);
+}
+
+void keyup(int key)
+{
+    switch(key)
+    {
+        case 331: downkey |= 0x1; break;
+        case 336: downkey |= 0x8; break;
+        case 333: downkey |= 0x2; break;
+        case 328: downkey |= 0x4; break;
+        case 44: upkey |= 0x1; break;
+        case 45: upkey |= 0x2; break;
+        case 57: upkey |= 0x4; break;
+        case 28: upkey |= 0x8; break;
+    default: break;
+    }
+    z80 -> throwInterrupt(0x10);
+}
+
 // Start of functions provided directly by Dr. Black
-unsigned char getKey() { return 0xf; }
+unsigned char getKey(void) {
+    // Modified 2024-03-20 by Nick Young
+    if ((keyboardColumn & 0x30) == 0x10)
+        return upkey;
+    else
+        return downkey;
+
+}
 void setRomMode(int address, unsigned char b) { }
 void setControlByte(unsigned char b) {
         tilemap=(b&8)!=0?1:0;
